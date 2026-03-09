@@ -1,0 +1,20 @@
+# --- Konfiguracja IDE ---
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# --- Backend (Maven) ---
+target/
+.mvn/
+*.log
+
+# --- Frontend ---
+node_modules/
+dist/
+.vite/
+.env.local
+
+# --- Systemowe ---
+Thumbs.db
+.DS_Store
