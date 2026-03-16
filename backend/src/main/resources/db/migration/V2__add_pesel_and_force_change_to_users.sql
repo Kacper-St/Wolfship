@@ -1,0 +1,5 @@
+ALTER TABLE users
+    ADD COLUMN pesel VARCHAR(11) UNIQUE;
+
+ALTER TABLE users
+    ADD COLUMN force_password_change BOOLEAN NOT NULL DEFAULT TRUE;
