@@ -1,9 +1,6 @@
 package com.example.backend.users.application;
 
-import com.example.backend.users.api.dto.LoginRequest;
-import com.example.backend.users.api.dto.PasswordChangeRequest;
-import com.example.backend.users.api.dto.UserRequest;
-import com.example.backend.users.api.dto.UserResponse;
+import com.example.backend.users.api.dto.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -24,4 +21,6 @@ public interface UserService {
     List<UserResponse> getAllUsers();
 
     UserResponse updateUserById(UUID id, @Valid UserRequest userRequest);
+
+    AuthResponse registerUser(@Valid RegisterRequest request);
 }
