@@ -2,16 +2,14 @@ package com.example.backend.users.application;
 
 import com.example.backend.common.exception.InternalTechnicalException;
 import com.example.backend.common.util.PasswordGenerator;
-import com.example.backend.users.api.dto.LoginRequest;
-import com.example.backend.users.api.dto.PasswordChangeRequest;
-import com.example.backend.users.api.dto.UserRequest;
-import com.example.backend.users.api.dto.UserResponse;
+import com.example.backend.users.api.dto.*;
 import com.example.backend.users.api.mapper.UserMapper;
 import com.example.backend.users.domain.exception.InvalidCredentialsException;
 import com.example.backend.users.domain.exception.SamePasswordException;
 import com.example.backend.users.domain.exception.UserAlreadyExistsException;
 import com.example.backend.users.domain.exception.UserNotFoundException;
 import com.example.backend.users.domain.model.Role;
+import com.example.backend.users.domain.model.RoleName;
 import com.example.backend.users.domain.model.User;
 import com.example.backend.users.domain.repository.RoleRepository;
 import com.example.backend.users.domain.repository.UserRepository;
@@ -179,6 +177,29 @@ public class UserServiceImpl implements UserService {
         log.info("User {} successfully updated", id);
 
         return userMapper.toResponse(updatedUser);
+    }
+
+    @Override
+    @Transactional
+    public AuthResponse registerUser(RegisterRequest request) {
+        log.info("Registering user via mapper: {}", request.getEmail());
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistsException("Email already taken");
+        }
+
+        User user = userMapper.toEntity(request);
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setActive(true);
+        user.setForcePasswordChange(false);
+
+        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+                .orElseThrow(() -> new InternalTechnicalException("ROLE_USER not found"));
+        user.setRoles(Set.of(userRole));
+
+        User savedUser = userRepository.save(user);
+        return userMapper.toAuthResponse(savedUser);
     }
 
     private User findUserOrThrow(UUID id) {
