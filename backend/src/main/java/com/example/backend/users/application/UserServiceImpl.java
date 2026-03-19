@@ -199,6 +199,8 @@ public class UserServiceImpl implements UserService {
         user.setRoles(Set.of(userRole));
 
         User savedUser = userRepository.save(user);
+        log.info("Public user registered successfully with ID: {}", savedUser.getId());
+
         return userMapper.toAuthResponse(savedUser);
     }
 
