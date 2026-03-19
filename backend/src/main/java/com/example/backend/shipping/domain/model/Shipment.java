@@ -11,7 +11,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -70,9 +69,6 @@ public class Shipment {
     @Column(length = 3, nullable = false)
     @Builder.Default
     private String currency = "PLN";
-
-    @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
-    private List<ShipmentStatusHistory> history;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

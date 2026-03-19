@@ -31,15 +31,6 @@ CREATE TABLE shipments (
                            cancelled_at TIMESTAMP
 );
 
-CREATE TABLE shipment_status_history (
-                                         id UUID PRIMARY KEY,
-                                         shipment_id UUID NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
-                                         status VARCHAR(50) NOT NULL,
-                                         changed_at TIMESTAMP NOT NULL,
-                                         comment VARCHAR(255),
-                                         changed_by UUID
-);
-
 CREATE INDEX idx_tracking ON shipments(tracking_number);
 CREATE INDEX idx_sender ON shipments(sender_id);
 CREATE INDEX idx_status ON shipments(status);
