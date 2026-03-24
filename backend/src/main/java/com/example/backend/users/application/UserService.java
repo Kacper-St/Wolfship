@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface UserService {
 
-    void loginUser(LoginRequest request);
+    AuthResponse loginUser(LoginRequest request);
 
     UserResponse createUser(UserRequest userRequest);
 
@@ -23,4 +23,6 @@ public interface UserService {
     UserResponse updateUserById(UUID id, @Valid UserRequest userRequest);
 
     AuthResponse registerUser(@Valid RegisterRequest request);
+
+    AuthResponse refreshToken(String rawRefreshToken);
 }
