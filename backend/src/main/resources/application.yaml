@@ -25,3 +25,8 @@ spring:
   output:
     ansi:
       enabled: always
+
+jwt:
+  secret: dGhpcyBpcyBhIHNlY3JldCBrZXkgZm9yIGp3dCB0b2tlbiBnZW5lcmF0aW9u
+  expiration-ms: 86400000
+  refresh-expiration-ms: 604800000

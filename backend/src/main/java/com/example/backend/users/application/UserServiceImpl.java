@@ -2,6 +2,7 @@ package com.example.backend.users.application;
 
 import com.example.backend.common.exception.InternalTechnicalException;
 import com.example.backend.common.util.PasswordGenerator;
+import com.example.backend.security.jwt.JwtService;
 import com.example.backend.users.api.dto.*;
 import com.example.backend.users.api.mapper.UserMapper;
 import com.example.backend.users.domain.exception.InvalidCredentialsException;
@@ -15,6 +16,7 @@ import com.example.backend.users.domain.repository.RoleRepository;
 import com.example.backend.users.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,24 +36,58 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final PasswordGenerator passwordGenerator;
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
 
     @Override
     @Transactional(readOnly = true)
-    public void loginUser(LoginRequest request) {
+    public AuthResponse loginUser(LoginRequest request) {
         log.info("Attempting authentication for identifier: {}", request.getLoginIdentifier());
 
         User user = findByIdentifierOrThrow(request.getLoginIdentifier());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.warn("Authentication failed: Invalid password for identifier {}", request.getLoginIdentifier());
+            log.warn("Authentication failed for identifier {}", request.getLoginIdentifier());
             throw new InvalidCredentialsException();
         }
 
-        if (user.isForcePasswordChange()) {
-            log.info("Authentication successful for user {}. Redirection to password change required.", user.getPesel());
-        } else {
-            log.info("User {} successfully authenticated.", user.getPesel());
+        var userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+
+        String accessToken  = jwtService.generateAccessToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+
+        log.info("User {} authenticated successfully. forcePasswordChange={}",
+                user.getPesel(), user.isForcePasswordChange());
+
+        AuthResponse response = userMapper.toAuthResponse(user);
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
+        response.setForcePasswordChange(user.isForcePasswordChange());
+        return response;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AuthResponse refreshToken(String rawRefreshToken) {
+        if (!jwtService.isRefreshToken(rawRefreshToken)) {
+            throw new InvalidCredentialsException();
         }
+
+        String username   = jwtService.extractUsername(rawRefreshToken);
+        var    userDetails = userDetailsService.loadUserByUsername(username);
+
+        if (!jwtService.isTokenValid(rawRefreshToken, userDetails)) {
+            throw new InvalidCredentialsException();
+        }
+
+        String newAccess  = jwtService.generateAccessToken(userDetails);
+        String newRefresh = jwtService.generateRefreshToken(userDetails);
+
+        User user = findByIdentifierOrThrow(username);
+        AuthResponse response = userMapper.toAuthResponse(user);
+        response.setAccessToken(newAccess);
+        response.setRefreshToken(newRefresh);
+        return response;
     }
 
     @Override
@@ -201,7 +237,16 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         log.info("Public user registered successfully with ID: {}", savedUser.getId());
 
-        return userMapper.toAuthResponse(savedUser);
+        var userDetails = userDetailsService.loadUserByUsername(savedUser.getEmail());
+        String accessToken  = jwtService.generateAccessToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+
+        AuthResponse response = userMapper.toAuthResponse(savedUser);
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
+        response.setForcePasswordChange(savedUser.isForcePasswordChange());
+
+        return response;
     }
 
     private User findUserOrThrow(UUID id) {

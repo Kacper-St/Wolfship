@@ -41,6 +41,10 @@ public interface UserMapper {
     @Mapping(target = "pesel", ignore = true)
     User toEntity(RegisterRequest request);
 
+    @Mapping(target = "roles", expression = "java(mapRoles(user))")
+    @Mapping(target = "accessToken", ignore = true)
+    @Mapping(target = "refreshToken", ignore = true)
+    @Mapping(target = "forcePasswordChange", source = "forcePasswordChange")
     AuthResponse toAuthResponse(User user);
 
     default Set<String> mapRoles(User user) {

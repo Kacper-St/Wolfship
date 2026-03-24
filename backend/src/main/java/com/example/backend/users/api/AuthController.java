@@ -25,13 +25,16 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<Void>> login(@Valid @RequestBody LoginRequest request) {
-        log.info("REST request to login user with identifier: {}", request.getLoginIdentifier());
-        userService.loginUser(request);
-        log.info("Login successful for: {}", request.getLoginIdentifier());
-        return ResponseEntity.ok(
-                ApiResponse.success(null, "LOGIN_SUCCESSFUL")
-        );
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        log.info("REST request to login: {}", request.getLoginIdentifier());
+        AuthResponse response = userService.loginUser(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        log.info("REST request to refresh token");
+        return ResponseEntity.ok(userService.refreshToken(request.getRefreshToken()));
     }
 
     @PostMapping("/change-password")
@@ -57,5 +60,11 @@ public class AuthController {
                 .toUri();
 
         return ResponseEntity.created(location).body(authResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout() {
+        log.info("REST request to logout");
+        return ResponseEntity.ok(ApiResponse.success(null, "LOGOUT_SUCCESSFUL"));
     }
 }
