@@ -1,0 +1,20 @@
+package com.example.backend.common.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
+
+@Configuration
+public class WebClientConfig {
+
+    @Bean
+    public WebClient nominatimWebClient(
+            @Value("${app.nominatim.url}") String nominatimUrl,
+            @Value("${app.nominatim.user-agent}") String userAgent) {
+        return WebClient.builder()
+                .baseUrl(nominatimUrl)
+                .defaultHeader("User-Agent", userAgent)
+                .build();
+    }
+}

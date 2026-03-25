@@ -27,7 +27,7 @@ spring:
 
 app:
   minio:
-    endpoint: http://localhost:9000
+    endpoint: http://wolfship-minio:9000
     access-key: admin
     secret-key: adminpassword
     bucket-name: wolfship-labels
