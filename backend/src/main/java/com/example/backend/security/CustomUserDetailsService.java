@@ -21,16 +21,16 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
-        User user = userRepository.findByEmailOrPesel(identifier, identifier)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
         Set<SimpleGrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toSet());
 
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())   // email jako principal
+                .username(user.getEmail())
                 .password(user.getPassword())
                 .authorities(authorities)
                 .accountLocked(!user.isActive())

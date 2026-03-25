@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.locationtech.jts.geom.Point;
 
 import java.util.UUID;
 
@@ -59,4 +60,7 @@ public class Address {
     @NotBlank(message = "Zip code is required")
     @Column(nullable = false, length = 10)
     private String zipCode;
+
+    @Column(columnDefinition = "geometry(Point, 4326)")
+    private Point coordinates;
 }

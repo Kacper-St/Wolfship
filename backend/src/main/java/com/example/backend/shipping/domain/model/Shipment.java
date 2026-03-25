@@ -54,7 +54,8 @@ public class Shipment {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ShipmentStatus status;
+    @Builder.Default
+    private ShipmentStatus status = ShipmentStatus.CREATED;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -77,6 +78,8 @@ public class Shipment {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    private String labelUrl;
 
     private LocalDateTime pickedUpAt;
 

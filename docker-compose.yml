@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgis/postgis:17-3.5-alpine
     container_name: wolfship-db
     restart: always
     environment:
@@ -13,6 +13,12 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d wolfship_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   backend:
     build: ./backend
@@ -24,7 +30,8 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   pgadmin:
     image: dpage/pgadmin4
@@ -37,5 +44,19 @@ services:
     depends_on:
       - postgres
 
+  minio:
+    image: minio/minio
+    container_name: wolfship-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: adminpassword
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
 volumes:
   postgres_data:
+  minio_data:

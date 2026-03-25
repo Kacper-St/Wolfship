@@ -22,10 +22,6 @@ public class UserRequest {
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
 
-    @NotBlank(message = "PESEL is required")
-    @Pattern(regexp = "\\d{11}", message = "PESEL must consist of exactly 11 digits")
-    private String pesel;
-
     @NotEmpty(message = "At least one role must be assigned")
     private Set<RoleName> roles;
 }
