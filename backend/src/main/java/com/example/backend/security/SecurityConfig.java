@@ -56,6 +56,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/refresh"
                         ).permitAll()
+                        .requestMatchers("/api/v1/shipments/track/**").permitAll()
                         .requestMatchers("/api/v1/auth/logout").authenticated()
                         .requestMatchers("/api/v1/auth/change-password").authenticated()
                         .requestMatchers("/api/v1/users/**").hasRole("ADMIN")

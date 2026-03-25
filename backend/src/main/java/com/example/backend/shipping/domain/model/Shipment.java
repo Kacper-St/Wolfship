@@ -42,12 +42,12 @@ public class Shipment {
     private UUID courierId;
 
     @NotNull
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "sender_address_id")
     private Address senderAddress;
 
     @NotNull
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "receiver_address_id")
     private Address receiverAddress;
 
