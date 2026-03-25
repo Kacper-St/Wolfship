@@ -38,7 +38,6 @@ public interface UserMapper {
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "active", ignore = true)
     @Mapping(target = "forcePasswordChange", ignore = true)
-    @Mapping(target = "pesel", ignore = true)
     User toEntity(RegisterRequest request);
 
     @Mapping(target = "roles", expression = "java(mapRoles(user))")

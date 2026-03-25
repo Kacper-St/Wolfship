@@ -15,7 +15,6 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
     enabled: true
@@ -25,6 +24,16 @@ spring:
   output:
     ansi:
       enabled: always
+
+app:
+  minio:
+    endpoint: http://localhost:9000
+    access-key: admin
+    secret-key: adminpassword
+    bucket-name: wolfship-labels
+  nominatim:
+    url: https://nominatim.openstreetmap.org
+    user-agent: Wolfship/1.0 (wolfshipcontact@gmail.com)
 
 jwt:
   secret: dGhpcyBpcyBhIHNlY3JldCBrZXkgZm9yIGp3dCB0b2tlbiBnZW5lcmF0aW9u

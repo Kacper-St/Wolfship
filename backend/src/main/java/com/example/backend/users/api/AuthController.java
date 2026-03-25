@@ -26,7 +26,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        log.info("REST request to login: {}", request.getLoginIdentifier());
+        log.info("REST request to login: {}", request.getEmail());
         AuthResponse response = userService.loginUser(request);
         return ResponseEntity.ok(response);
     }
@@ -39,9 +39,9 @@ public class AuthController {
 
     @PostMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody PasswordChangeRequest request) {
-        log.info("REST request to change password for identifier: {}", request.getLoginIdentifier());
+        log.info("REST request to change password for identifier: {}", request.getEmail());
         userService.changePassword(request);
-        log.info("Password successfully changed for user: {}", request.getLoginIdentifier());
+        log.info("Password successfully changed for user: {}", request.getEmail());
         return ResponseEntity.ok(
                 ApiResponse.success(null, "PASSWORD_CHANGED_SUCCESSFULLY")
         );

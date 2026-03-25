@@ -42,12 +42,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public AuthResponse loginUser(LoginRequest request) {
-        log.info("Attempting authentication for identifier: {}", request.getLoginIdentifier());
+        log.info("Attempting authentication for email: {}", request.getEmail());
 
-        User user = findByIdentifierOrThrow(request.getLoginIdentifier());
+        User user = findByEmailOrThrow(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.warn("Authentication failed for identifier {}", request.getLoginIdentifier());
+            log.warn("Authentication failed for email {}", request.getEmail());
             throw new InvalidCredentialsException();
         }
 
@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
         log.info("User {} authenticated successfully. forcePasswordChange={}",
-                user.getPesel(), user.isForcePasswordChange());
+                user.getEmail(), user.isForcePasswordChange());
 
         AuthResponse response = userMapper.toAuthResponse(user);
         response.setAccessToken(accessToken);
@@ -73,8 +73,8 @@ public class UserServiceImpl implements UserService {
             throw new InvalidCredentialsException();
         }
 
-        String username   = jwtService.extractUsername(rawRefreshToken);
-        var    userDetails = userDetailsService.loadUserByUsername(username);
+        String email = jwtService.extractUsername(rawRefreshToken);
+        var userDetails = userDetailsService.loadUserByUsername(email);
 
         if (!jwtService.isTokenValid(rawRefreshToken, userDetails)) {
             throw new InvalidCredentialsException();
@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
         String newAccess  = jwtService.generateAccessToken(userDetails);
         String newRefresh = jwtService.generateRefreshToken(userDetails);
 
-        User user = findByIdentifierOrThrow(username);
+        User user = findByEmailOrThrow(email);
         AuthResponse response = userMapper.toAuthResponse(user);
         response.setAccessToken(newAccess);
         response.setRefreshToken(newRefresh);
@@ -93,13 +93,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponse createUser(UserRequest userRequest) {
-        log.info("Creating new user with email: {} and PESEL: {}", userRequest.getEmail(), userRequest.getPesel());
+        log.info("Creating new user with email: {}", userRequest.getEmail());
 
         if (userRepository.existsByEmail(userRequest.getEmail())) {
             throw new UserAlreadyExistsException("Email already taken");
-        }
-        if (userRepository.existsByPesel(userRequest.getPesel())) {
-            throw new UserAlreadyExistsException("User with this PESEL already exists");
         }
 
         User user = userMapper.toEntity(userRequest);
@@ -117,7 +114,7 @@ public class UserServiceImpl implements UserService {
         user.setRoles(roles);
 
         User savedUser = userRepository.saveAndFlush(user);
-        log.info("User created successfully. TEMP PASSWORD for {}: {}", user.getPesel(), rawPassword);
+        log.info("User created successfully. TEMP PASSWORD for {}: {}", user.getEmail(), rawPassword);
 
         return userMapper.toResponse(savedUser);
     }
@@ -125,17 +122,17 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void changePassword(PasswordChangeRequest request) {
-        log.info("Attempting to change password for user: {}", request.getLoginIdentifier());
+        log.info("Attempting to change password for user: {}", request.getEmail());
 
-        User user = findByIdentifierOrThrow(request.getLoginIdentifier());
+        User user = findByEmailOrThrow(request.getEmail());
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            log.warn("Password change failed: Current password does not match for user {}", request.getLoginIdentifier());
+            log.warn("Password change failed: Current password does not match for user {}", request.getEmail());
             throw new InvalidCredentialsException();
         }
 
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
-            log.warn("Password change failed: New password is the same as the old one for user {}", request.getLoginIdentifier());
+            log.warn("Password change failed: New password is the same as the old one for user {}", request.getEmail());
             throw new SamePasswordException();
         }
 
@@ -143,7 +140,7 @@ public class UserServiceImpl implements UserService {
         user.setForcePasswordChange(false);
 
         userRepository.save(user);
-        log.info("Password successfully changed for user: {}. ForcePasswordChange flag reset to false.", user.getPesel());
+        log.info("Password successfully changed for user: {}. ForcePasswordChange flag reset to false.", user.getEmail());
     }
 
     @Override
@@ -189,13 +186,6 @@ public class UserServiceImpl implements UserService {
                 .ifPresent(existingUser -> {
                     if (!existingUser.getId().equals(id)) {
                         throw new UserAlreadyExistsException("Email already taken by another user");
-                    }
-                });
-
-        userRepository.findByPesel(userRequest.getPesel())
-                .ifPresent(existingUser -> {
-                    if (!existingUser.getId().equals(id)) {
-                        throw new UserAlreadyExistsException("PESEL already taken by another user");
                     }
                 });
 
@@ -257,10 +247,10 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
-    private User findByIdentifierOrThrow(String identifier) {
-        return userRepository.findByEmailOrPesel(identifier, identifier)
+    private User findByEmailOrThrow(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> {
-                    log.warn("User with identifier {} not found", identifier);
+                    log.warn("User with email {} not found", email);
                     return new InvalidCredentialsException();
                 });
     }

@@ -55,13 +55,12 @@ public class DataInitializer implements ApplicationRunner {
         admin.setEmail(adminEmail);
         admin.setFirstName("Admin");
         admin.setLastName("Wolfship");
-        admin.setPesel("00000000000");
-        admin.setPassword(passwordEncoder.encode("Admin1234!"));
+        admin.setPassword(passwordEncoder.encode("admin"));
         admin.setActive(true);
         admin.setForcePasswordChange(false);
         admin.setRoles(Set.of(adminRole));
 
         userRepository.save(admin);
-        log.info("Admin user created: {} / Admin1234!", adminEmail);
+        log.info("Admin user created: {} / admin", adminEmail);
     }
 }

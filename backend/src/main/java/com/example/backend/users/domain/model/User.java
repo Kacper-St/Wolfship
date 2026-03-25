@@ -32,11 +32,6 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(unique = true, nullable = false, length = 11)
-    @Size(min = 11, max = 11, message = "PESEL must be 11 characters long")
-    @Pattern(regexp = "\\d{11}", message = "PESEL must contain only digits")
-    private String pesel;
-
     @Column(nullable = false)
     private boolean forcePasswordChange = true;
 
