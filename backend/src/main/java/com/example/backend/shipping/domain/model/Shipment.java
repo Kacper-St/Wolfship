@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -73,17 +74,17 @@ public class Shipment {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     private String labelUrl;
 
-    private LocalDateTime pickedUpAt;
+    private Instant pickedUpAt;
 
-    private LocalDateTime deliveredAt;
+    private Instant deliveredAt;
 
-    private LocalDateTime cancelledAt;
+    private Instant cancelledAt;
 }
