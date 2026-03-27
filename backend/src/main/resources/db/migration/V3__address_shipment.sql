@@ -23,12 +23,12 @@ CREATE TABLE shipments (
                            price DECIMAL(19, 2) NOT NULL,
                            currency VARCHAR(3) NOT NULL DEFAULT 'PLN',
 
-                           created_at TIMESTAMP NOT NULL,
-                           updated_at TIMESTAMP NOT NULL,
+                           created_at TIMESTAMP(6) WITH TIME ZONE,
+                           updated_at TIMESTAMP(6) WITH TIME ZONE,
 
-                           picked_up_at TIMESTAMP,
-                           delivered_at TIMESTAMP,
-                           cancelled_at TIMESTAMP
+                           picked_up_at TIMESTAMP(6) WITH TIME ZONE,
+                           delivered_at TIMESTAMP(6) WITH TIME ZONE,
+                           cancelled_at TIMESTAMP(6) WITH TIME ZONE
 );
 
 CREATE INDEX idx_tracking ON shipments(tracking_number);

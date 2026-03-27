@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,9 +24,9 @@ public class ShipmentResponse {
     private BigDecimal price;
     private String currency;
     private String labelDownloadUrl;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime pickedUpAt;
-    private LocalDateTime deliveredAt;
-    private LocalDateTime cancelledAt;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private Instant pickedUpAt;
+    private Instant deliveredAt;
+    private Instant cancelledAt;
 }
