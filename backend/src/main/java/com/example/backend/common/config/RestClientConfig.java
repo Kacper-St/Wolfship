@@ -3,16 +3,16 @@ package com.example.backend.common.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 @Configuration
-public class WebClientConfig {
+public class RestClientConfig {
 
     @Bean
-    public WebClient nominatimWebClient(
+    public RestClient nominatimRestClient(
             @Value("${app.nominatim.url}") String nominatimUrl,
             @Value("${app.nominatim.user-agent}") String userAgent) {
-        return WebClient.builder()
+        return RestClient.builder()
                 .baseUrl(nominatimUrl)
                 .defaultHeader("User-Agent", userAgent)
                 .build();

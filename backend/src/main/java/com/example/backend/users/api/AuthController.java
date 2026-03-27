@@ -26,22 +26,18 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        log.info("REST request to login: {}", request.getEmail());
         AuthResponse response = userService.loginUser(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        log.info("REST request to refresh token");
         return ResponseEntity.ok(userService.refreshToken(request.getRefreshToken()));
     }
 
     @PostMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody PasswordChangeRequest request) {
-        log.info("REST request to change password for identifier: {}", request.getEmail());
         userService.changePassword(request);
-        log.info("Password successfully changed for user: {}", request.getEmail());
         return ResponseEntity.ok(
                 ApiResponse.success(null, "PASSWORD_CHANGED_SUCCESSFULLY")
         );
@@ -49,7 +45,6 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        log.info("REST request to register: {}", request.getEmail());
 
         AuthResponse authResponse = userService.registerUser(request);
 
@@ -64,7 +59,6 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout() {
-        log.info("REST request to logout");
         return ResponseEntity.ok(ApiResponse.success(null, "LOGOUT_SUCCESSFUL"));
     }
 }
