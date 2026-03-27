@@ -32,5 +32,7 @@ public interface ShipmentMapper {
     @Mapping(target = "cancelledAt", ignore = true)
     Shipment toEntity(ShipmentRequest request);
 
+    @Mapping(target = "labelDownloadUrl",
+             expression = "java(\"/api/v1/shipments/\" + shipment.getTrackingNumber() + \"/label\")")
     ShipmentResponse toResponse(Shipment shipment);
 }

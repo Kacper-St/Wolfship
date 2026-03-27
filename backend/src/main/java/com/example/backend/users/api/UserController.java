@@ -24,7 +24,6 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest){
-        log.debug("Creating user");
 
         UserResponse userResponse = userService.createUser(userRequest);
 
@@ -39,27 +38,23 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        log.info("REST request to deactivate user: {}", id);
         userService.deleteUserById(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable UUID id) {
-        log.info("REST request to get User: {}", id);
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @GetMapping
     public ResponseEntity<List<UserResponse>> getAllUsers() {
-        log.info("REST request to get all Users");
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id,
                                                    @Valid @RequestBody UserRequest userRequest) {
-        log.info("REST request to update User: {}", id);
         return ResponseEntity.ok(userService.updateUserById(id, userRequest));
     }
 }

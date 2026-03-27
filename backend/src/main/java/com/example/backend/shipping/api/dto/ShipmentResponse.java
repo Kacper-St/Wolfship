@@ -22,7 +22,7 @@ public class ShipmentResponse {
     private ShipmentSize size;
     private BigDecimal price;
     private String currency;
-    private String labelUrl;
+    private String labelDownloadUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime pickedUpAt;

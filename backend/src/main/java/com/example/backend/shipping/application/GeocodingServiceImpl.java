@@ -7,9 +7,9 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Map;
@@ -19,9 +19,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GeocodingServiceImpl implements GeocodingService {
 
-    private final WebClient nominatimWebClient;
+    private final RestClient nominatimRestClient;
 
-    private final GeometryFactory geometryFactory = 
+    private final GeometryFactory geometryFactory =
             new GeometryFactory(new PrecisionModel(), 4326);
 
     @Override
@@ -33,7 +33,7 @@ public class GeocodingServiceImpl implements GeocodingService {
 
         log.info("Geocoding address: {}", query);
 
-        List<Map> results = nominatimWebClient.get()
+        List<Map<String, Object>> results = nominatimRestClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/search")
                         .queryParam("q", query)
@@ -41,19 +41,16 @@ public class GeocodingServiceImpl implements GeocodingService {
                         .queryParam("limit", 1)
                         .build())
                 .retrieve()
-                .bodyToFlux(Map.class)
-                .collectList()
-                .block();
+                .body(new ParameterizedTypeReference<>() {});
 
         if (results == null || results.isEmpty()) {
             log.warn("Geocoding failed for address: {}", query);
-            throw new InvalidAddressException(
-                    "Cannot find coordinates for address: " + query);
+            throw new InvalidAddressException("Cannot find coordinates for address: " + query);
         }
 
-        Map result = results.get(0);
-        double lat = Double.parseDouble((String) result.get("lat"));
-        double lon = Double.parseDouble((String) result.get("lon"));
+        Map<String, Object> result = results.get(0);
+        double lat = Double.parseDouble(result.get("lat").toString());
+        double lon = Double.parseDouble(result.get("lon").toString());
 
         log.info("Geocoding successful: lat={}, lon={}", lat, lon);
 

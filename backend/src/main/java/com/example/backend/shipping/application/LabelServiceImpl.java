@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Slf4j
 @Service
@@ -37,21 +38,29 @@ public class LabelServiceImpl implements LabelService {
 
         try {
             byte[] qrBytes = generateQrCode(shipment.getTrackingNumber());
-
             byte[] pdfBytes = generatePdf(shipment, qrBytes);
 
-            String fileName = "labels/" + shipment.getTrackingNumber() + ".pdf";
-            uploadToMinio(pdfBytes, fileName);
+            String filePath = "labels/" + shipment.getTrackingNumber() + ".pdf";
+            uploadToMinio(pdfBytes, filePath);
 
-            String url = bucketName + "/" + fileName;
-            log.info("Label generated and uploaded: {}", url);
-            return url;
+            log.info("Label uploaded: {}", filePath);
+            return filePath;
 
         } catch (Exception e) {
             log.error("Failed to generate label for shipment: {}",
                     shipment.getTrackingNumber(), e);
             throw new RuntimeException("Label generation failed", e);
         }
+    }
+
+    @Override
+    public InputStream getLabelStream(String filePath) throws Exception {
+        return minioClient.getObject(
+                io.minio.GetObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(filePath)
+                        .build()
+        );
     }
 
     private byte[] generateQrCode(String trackingNumber)

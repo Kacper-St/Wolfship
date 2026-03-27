@@ -5,6 +5,7 @@ import com.example.backend.shipping.api.dto.ShipmentResponse;
 import com.example.backend.shipping.api.mapper.ShipmentMapper;
 import com.example.backend.shipping.application.event.ShipmentCancelledEvent;
 import com.example.backend.shipping.application.event.ShipmentCreatedEvent;
+import com.example.backend.shipping.domain.exception.LabelGenerationException;
 import com.example.backend.shipping.domain.exception.ShipmentCannotBeCancelledException;
 import com.example.backend.shipping.domain.exception.ShipmentNotFoundException;
 import com.example.backend.shipping.domain.model.Address;
@@ -18,6 +19,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -76,6 +78,8 @@ public class ShipmentServiceImpl implements ShipmentService {
                 updated.getReceiverAddress().getEmail(),
                 receiverPoint.getY(),
                 receiverPoint.getX(),
+                senderPoint.getY(),
+                senderPoint.getX(),
                 updated.getLabelUrl()
         ));
 
@@ -109,12 +113,12 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Override
     @Transactional
-    public void cancelShipment(UUID id, UUID requesterId) {
-        log.info("Cancelling shipment: {} by: {}", id, requesterId);
+    public void cancelShipment(String trackingNumber, UUID requesterId) {
+        log.info("Cancelling shipment: {} by: {}", trackingNumber, requesterId);
 
-        Shipment shipment = shipmentRepository.findById(id)
+        Shipment shipment = shipmentRepository.findByTrackingNumber(trackingNumber)
                 .orElseThrow(() -> new ShipmentNotFoundException(
-                        "Shipment not found: " + id));
+                        "Shipment not found: " + trackingNumber));
 
         if (shipment.getStatus() != ShipmentStatus.CREATED) {
             throw new ShipmentCannotBeCancelledException(
@@ -124,7 +128,6 @@ public class ShipmentServiceImpl implements ShipmentService {
         }
 
         shipment.setStatus(ShipmentStatus.CANCELLED);
-
         shipmentRepository.save(shipment);
 
         eventPublisher.publishEvent(new ShipmentCancelledEvent(
@@ -133,6 +136,20 @@ public class ShipmentServiceImpl implements ShipmentService {
                 shipment.getReceiverAddress().getEmail()
         ));
 
-        log.info("Shipment {} cancelled successfully", id);
+        log.info("Shipment {} cancelled successfully", trackingNumber);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InputStream getLabelStream(String trackingNumber) {
+        Shipment shipment = shipmentRepository.findByTrackingNumber(trackingNumber)
+                .orElseThrow(() -> new ShipmentNotFoundException(
+                        "Shipment not found: " + trackingNumber));
+        try {
+            return labelService.getLabelStream(shipment.getLabelUrl());
+        } catch (Exception e) {
+            log.error("Failed to get label stream for: {}", trackingNumber, e);
+            throw new LabelGenerationException(trackingNumber);
+        }
     }
 }
