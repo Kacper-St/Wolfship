@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -20,9 +19,7 @@ import java.util.Map;
 public class GeocodingServiceImpl implements GeocodingService {
 
     private final RestClient nominatimRestClient;
-
-    private final GeometryFactory geometryFactory =
-            new GeometryFactory(new PrecisionModel(), 4326);
+    private final GeometryFactory geometryFactory;
 
     @Override
     public Point geocode(String street, String houseNumber,
