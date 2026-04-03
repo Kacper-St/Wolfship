@@ -1,5 +1,7 @@
 package com.example.backend.routing.application;
 
+import com.example.backend.routing.api.dto.RouteResponse;
+import com.example.backend.routing.api.mapper.RoutingMapper;
 import com.example.backend.routing.application.graph.HubGraphService;
 import com.example.backend.routing.domain.exception.RouteNotFoundException;
 import com.example.backend.routing.domain.model.ShipmentRoute;
@@ -25,6 +27,7 @@ public class RoutingServiceImpl implements RoutingService {
     private final HubGraphService hubGraphService;
     private final ShipmentRouteRepository shipmentRouteRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final RoutingMapper routingMapper;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -63,10 +66,13 @@ public class RoutingServiceImpl implements RoutingService {
 
     @Override
     @Transactional(readOnly = true)
-    public ShipmentRoute getRouteByShipmentId(UUID shipmentId) {
+    public RouteResponse getRouteByShipmentId(UUID shipmentId) {
         log.info("Getting route for shipment: {}", shipmentId);
 
-        return shipmentRouteRepository.findByShipmentId(shipmentId)
-                .orElseThrow(() -> new RouteNotFoundException("Route not found for shipment: " + shipmentId));
+        ShipmentRoute route = shipmentRouteRepository.findByShipmentId(shipmentId)
+                .orElseThrow(() -> new RouteNotFoundException(
+                        "Route not found for shipment: " + shipmentId));
+
+        return routingMapper.toRouteResponse(route);
     }
 }
