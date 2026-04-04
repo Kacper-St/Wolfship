@@ -2,6 +2,7 @@ package com.example.backend.tracking.application;
 
 import com.example.backend.shipping.domain.model.ShipmentStatus;
 import com.example.backend.tracking.api.dto.TrackingEventResponse;
+import com.example.backend.tracking.api.mapper.TrackingMapper;
 import com.example.backend.tracking.domain.exception.TrackingEventNotFoundException;
 import com.example.backend.tracking.domain.model.TrackingEvent;
 import com.example.backend.tracking.domain.repository.TrackingEventRepository;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class TrackingServiceImpl implements TrackingService {
 
     private final TrackingEventRepository trackingEventRepository;
+    private final TrackingMapper trackingMapper;
 
     @Override
     @Transactional
@@ -52,15 +54,7 @@ public class TrackingServiceImpl implements TrackingService {
         }
 
         return events.stream()
-                .map(e -> new TrackingEventResponse(
-                        e.getId(),
-                        e.getShipmentId(),
-                        e.getTrackingNumber(),
-                        e.getStatus(),
-                        e.getDescription(),
-                        e.getLocation(),
-                        e.getCreatedAt()
-                ))
+                .map(trackingMapper::toResponse)
                 .toList();
     }
 }
