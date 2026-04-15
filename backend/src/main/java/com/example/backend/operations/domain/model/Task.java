@@ -1,8 +1,9 @@
-package com.example.backend.tracking.domain.model;
+package com.example.backend.operations.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
@@ -10,13 +11,13 @@ import java.util.UUID;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "tracking_events")
+@Table(name = "tasks")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TrackingEvent {
+public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -28,17 +29,36 @@ public class TrackingEvent {
     @Column(nullable = false)
     private String trackingNumber;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "courier_id")
+    private Courier courier;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TrackingStatus status;
+    private TaskType taskType;
 
-    @Column(length = 500)
-    private String description;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private TaskStatus taskStatus = TaskStatus.PENDING;
 
-    @Column(length = 255)
-    private String location;
+    @Column
+    private String receiverEmail;
+
+    @Column
+    private UUID sourceHubId;
+
+    @Column
+    private UUID targetHubId;
+
+    @Column(nullable = false)
+    private Integer sequenceOrder;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private Instant updatedAt;
 }

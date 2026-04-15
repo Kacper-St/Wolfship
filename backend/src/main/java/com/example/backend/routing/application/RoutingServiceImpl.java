@@ -31,8 +31,8 @@ public class RoutingServiceImpl implements RoutingService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ShipmentRoute calculateAndSaveRoute(UUID shipmentId, double senderLat, double senderLon,
-                                               double receiverLat, double receiverLon) {
+    public ShipmentRoute calculateAndSaveRoute(UUID shipmentId, String trackingNumber, String receiverEmail,
+                                               double senderLat, double senderLon, double receiverLat, double receiverLon) {
         log.info("Calculating route for shipment: {}", shipmentId);
 
         Zone sourceZone = zoneResolverService.resolveZone(senderLat, senderLon);
@@ -55,10 +55,14 @@ public class RoutingServiceImpl implements RoutingService {
         log.info("Route saved for shipment: {}. Hub sequence: {}", shipmentId, hubSequence.size());
 
         eventPublisher.publishEvent(new RouteCalculatedEvent(
-                shipmentId,
+                saved.getShipmentId(),
+                trackingNumber,
+                sourceZone.getId(),
+                targetZone.getId(),
                 sourceZone.getHub().getId(),
                 targetZone.getHub().getId(),
-                hubSequence
+                hubSequence,
+                receiverEmail
         ));
 
         return saved;

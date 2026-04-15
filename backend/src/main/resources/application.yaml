@@ -25,6 +25,18 @@ spring:
     ansi:
       enabled: always
 
+  mail:
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: a01986ce640f51
+    password: 7ac029ab642b32
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 app:
   minio:
     endpoint: http://wolfship-minio:9000
