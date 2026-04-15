@@ -1,9 +1,10 @@
 package com.example.backend.tracking.application;
 
-import com.example.backend.shipping.domain.model.ShipmentStatus;
 import com.example.backend.tracking.api.dto.TrackingEventResponse;
+import com.example.backend.tracking.api.mapper.TrackingMapper;
 import com.example.backend.tracking.domain.exception.TrackingEventNotFoundException;
 import com.example.backend.tracking.domain.model.TrackingEvent;
+import com.example.backend.tracking.domain.model.TrackingStatus;
 import com.example.backend.tracking.domain.repository.TrackingEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +20,11 @@ import java.util.UUID;
 public class TrackingServiceImpl implements TrackingService {
 
     private final TrackingEventRepository trackingEventRepository;
+    private final TrackingMapper trackingMapper;
 
     @Override
     @Transactional
-    public void recordEvent(UUID shipmentId, String trackingNumber, ShipmentStatus status, String description,
-                            String location) {
+    public void recordEvent(UUID shipmentId, String trackingNumber, TrackingStatus status, String description, String location) {
 
         log.info("Recording tracking event for shipment: {} status: {}", trackingNumber, status);
 
@@ -52,15 +53,7 @@ public class TrackingServiceImpl implements TrackingService {
         }
 
         return events.stream()
-                .map(e -> new TrackingEventResponse(
-                        e.getId(),
-                        e.getShipmentId(),
-                        e.getTrackingNumber(),
-                        e.getStatus(),
-                        e.getDescription(),
-                        e.getLocation(),
-                        e.getCreatedAt()
-                ))
+                .map(trackingMapper::toResponse)
                 .toList();
     }
 }

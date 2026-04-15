@@ -5,6 +5,7 @@ import com.example.backend.common.util.PasswordGenerator;
 import com.example.backend.security.jwt.JwtService;
 import com.example.backend.users.api.dto.*;
 import com.example.backend.users.api.mapper.UserMapper;
+import com.example.backend.users.application.event.UserCreatedEvent;
 import com.example.backend.users.domain.exception.InvalidCredentialsException;
 import com.example.backend.users.domain.exception.SamePasswordException;
 import com.example.backend.users.domain.exception.UserAlreadyExistsException;
@@ -16,6 +17,7 @@ import com.example.backend.users.domain.repository.RoleRepository;
 import com.example.backend.users.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordGenerator passwordGenerator;
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -114,7 +117,14 @@ public class UserServiceImpl implements UserService {
         user.setRoles(roles);
 
         User savedUser = userRepository.saveAndFlush(user);
-        log.info("User created successfully. TEMP PASSWORD for {}: {}", user.getEmail(), rawPassword);
+
+        eventPublisher.publishEvent(new UserCreatedEvent(
+                savedUser.getId(),
+                savedUser.getEmail(),
+                rawPassword
+        ));
+
+        log.info("User created successfully: {}", user.getEmail());
 
         return userMapper.toResponse(savedUser);
     }
