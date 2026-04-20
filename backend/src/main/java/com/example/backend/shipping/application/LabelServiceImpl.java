@@ -1,5 +1,6 @@
 package com.example.backend.shipping.application;
 
+import com.example.backend.shipping.domain.exception.LabelGenerationException;
 import com.example.backend.shipping.domain.model.Shipment;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -49,18 +50,23 @@ public class LabelServiceImpl implements LabelService {
         } catch (Exception e) {
             log.error("Failed to generate label for shipment: {}",
                     shipment.getTrackingNumber(), e);
-            throw new RuntimeException("Label generation failed", e);
+            throw new LabelGenerationException(shipment.getTrackingNumber());
         }
     }
 
     @Override
-    public InputStream getLabelStream(String filePath) throws Exception {
-        return minioClient.getObject(
-                io.minio.GetObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(filePath)
-                        .build()
-        );
+    public InputStream getLabelStream(String filePath) {
+        try {
+            return minioClient.getObject(
+                    io.minio.GetObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(filePath)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Failed to get label stream for: {}", filePath, e);
+            throw new LabelGenerationException(filePath);
+        }
     }
 
     private byte[] generateQrCode(String trackingNumber)

@@ -10,5 +10,4 @@ import java.util.UUID;
 @Repository
 public interface TrackingEventRepository extends JpaRepository<TrackingEvent, UUID> {
     List<TrackingEvent> findAllByTrackingNumberOrderByCreatedAtDesc(String trackingNumber);
-    List<TrackingEvent> findAllByShipmentIdOrderByCreatedAtDesc(UUID shipmentId);
 }

@@ -3,9 +3,9 @@ spring:
     name: Wolfship
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/wolfship_db
-    username: postgres
-    password: admin
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/wolfship_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -15,6 +15,11 @@ spring:
     show-sql: true
     properties:
       hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
 
   flyway:
     enabled: true
@@ -26,10 +31,10 @@ spring:
       enabled: always
 
   mail:
-    host: sandbox.smtp.mailtrap.io
-    port: 2525
-    username: a01986ce640f51
-    password: 7ac029ab642b32
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -39,15 +44,15 @@ spring:
 
 app:
   minio:
-    endpoint: http://wolfship-minio:9000
-    access-key: admin
-    secret-key: adminpassword
-    bucket-name: wolfship-labels
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ROOT_USER}
+    secret-key: ${MINIO_ROOT_PASSWORD}
+    bucket-name: ${MINIO_BUCKET_NAME:wolfship-labels}
   nominatim:
     url: https://nominatim.openstreetmap.org
     user-agent: Wolfship/1.0 (wolfshipcontact@gmail.com)
 
 jwt:
-  secret: dGhpcyBpcyBhIHNlY3JldCBrZXkgZm9yIGp3dCB0b2tlbiBnZW5lcmF0aW9u
-  expiration-ms: 86400000
-  refresh-expiration-ms: 604800000
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_MS}
+  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS}

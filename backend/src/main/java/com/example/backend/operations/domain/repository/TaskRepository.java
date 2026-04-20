@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, UUID> {
-//    List<Task> findAllByShipmentIdOrderBySequenceOrder(UUID shipmentId);
 
     @Query("SELECT t FROM Task t " +
            "JOIN FETCH t.courier " +
