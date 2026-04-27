@@ -1,5 +1,6 @@
 package com.example.backend.shipping.application;
 
+import com.example.backend.shipping.domain.exception.GeocodingException;
 import com.example.backend.shipping.domain.exception.InvalidAddressException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +8,12 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -20,6 +26,13 @@ public class GeocodingServiceImpl implements GeocodingService {
 
     private final RestClient nominatimRestClient;
     private final GeometryFactory geometryFactory;
+
+    @Retryable(
+            retryFor = {RestClientException.class, ResourceAccessException.class},
+            noRetryFor = {InvalidAddressException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
 
     @Override
     public Point geocode(String street, String houseNumber,
@@ -52,5 +65,13 @@ public class GeocodingServiceImpl implements GeocodingService {
         log.info("Geocoding successful: lat={}, lon={}", lat, lon);
 
         return geometryFactory.createPoint(new Coordinate(lon, lat));
+    }
+
+    @Recover
+    public Point recoverGeocode(RestClientException e, String street, String houseNumber,
+                                String city, String zipCode, String country) {
+        String query = String.format("%s %s, %s, %s, %s", street, houseNumber, zipCode, city, country);
+        log.error("Geocoding failed permanently after 3 attempts for: {}. Error: {}", query, e.getMessage());
+        throw new GeocodingException("Geocoding service unavailable for address: " + query);
     }
 }

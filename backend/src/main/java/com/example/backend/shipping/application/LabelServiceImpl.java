@@ -16,6 +16,9 @@ import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -32,6 +35,12 @@ public class LabelServiceImpl implements LabelService {
 
     @Value("${app.minio.bucket-name}")
     private String bucketName;
+
+    @Retryable(
+            retryFor = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
 
     @Override
     public String generateAndUploadLabel(Shipment shipment) {
@@ -148,5 +157,11 @@ public class LabelServiceImpl implements LabelService {
                         .contentType("application/pdf")
                         .build()
         );
+    }
+
+    @Recover
+    public String recoverGenerateAndUploadLabel(Exception e, Shipment shipment) {
+        log.error("Label generation failed permanently after 3 attempts for: {}", shipment.getTrackingNumber(), e);
+        throw new LabelGenerationException(shipment.getTrackingNumber());
     }
 }

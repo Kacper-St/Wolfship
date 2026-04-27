@@ -11,6 +11,9 @@ import com.example.backend.routing.application.event.RouteCalculatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,12 @@ public class RoutingServiceImpl implements RoutingService {
     private final ShipmentRouteRepository shipmentRouteRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final RoutingMapper routingMapper;
+
+    @Retryable(
+            retryFor = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -74,9 +83,14 @@ public class RoutingServiceImpl implements RoutingService {
         log.info("Getting route for shipment: {}", shipmentId);
 
         ShipmentRoute route = shipmentRouteRepository.findByShipmentId(shipmentId)
-                .orElseThrow(() -> new RouteNotFoundException(
-                        "Route not found for shipment: " + shipmentId));
-
+                .orElseThrow(() -> new RouteNotFoundException("Route not found for shipment: " + shipmentId));
         return routingMapper.toRouteResponse(route);
+    }
+
+    @Recover
+    public ShipmentRoute recoverCalculateAndSaveRoute(Exception e, UUID shipmentId, String trackingNumber, String receiverEmail,
+                                                      double senderLat, double senderLon, double receiverLat, double receiverLon) {
+        log.error("Route calculation failed permanently for shipment: {}. Manual intervention required.", trackingNumber, e);
+        return null;
     }
 }
