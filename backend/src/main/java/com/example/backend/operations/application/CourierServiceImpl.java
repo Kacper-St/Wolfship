@@ -10,6 +10,9 @@ import com.example.backend.operations.domain.repository.TaskRepository;
 import com.example.backend.routing.application.event.RouteCalculatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +28,12 @@ public class CourierServiceImpl implements CourierService {
     private final CourierRepository courierRepository;
     private final TaskRepository taskRepository;
     private final OperationsMapper operationsMapper;
+
+    @Retryable(
+            retryFor = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
 
     @Override
     @Transactional
@@ -164,5 +173,11 @@ public class CourierServiceImpl implements CourierService {
                     log.warn("No active line-haul courier found for route: {} → {}", sourceHubId, targetHubId);
                     return null;
                 });
+    }
+
+    @Recover
+    public void recoverCreateTasksForRoute(Exception e, RouteCalculatedEvent event) {
+        log.error("Task creation failed permanently for shipment: {}. Manual intervention required.",
+                event.trackingNumber(), e);
     }
 }
