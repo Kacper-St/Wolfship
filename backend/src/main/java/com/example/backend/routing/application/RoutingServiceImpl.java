@@ -3,7 +3,9 @@ package com.example.backend.routing.application;
 import com.example.backend.routing.api.dto.RouteResponse;
 import com.example.backend.routing.api.mapper.RoutingMapper;
 import com.example.backend.routing.application.graph.HubGraphService;
+import com.example.backend.routing.domain.exception.RouteCalculationException;
 import com.example.backend.routing.domain.exception.RouteNotFoundException;
+import com.example.backend.routing.domain.exception.ZoneNotFoundException;
 import com.example.backend.routing.domain.model.ShipmentRoute;
 import com.example.backend.routing.domain.model.Zone;
 import com.example.backend.routing.domain.repository.ShipmentRouteRepository;
@@ -11,6 +13,7 @@ import com.example.backend.routing.application.event.RouteCalculatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -33,7 +36,8 @@ public class RoutingServiceImpl implements RoutingService {
     private final RoutingMapper routingMapper;
 
     @Retryable(
-            retryFor = {Exception.class},
+            retryFor = {DataAccessException.class},
+            noRetryFor = {RouteCalculationException.class, ZoneNotFoundException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000, multiplier = 2)
     )

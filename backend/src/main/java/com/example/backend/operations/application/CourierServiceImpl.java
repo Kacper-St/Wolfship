@@ -10,6 +10,7 @@ import com.example.backend.operations.domain.repository.TaskRepository;
 import com.example.backend.routing.application.event.RouteCalculatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -30,7 +31,8 @@ public class CourierServiceImpl implements CourierService {
     private final OperationsMapper operationsMapper;
 
     @Retryable(
-            retryFor = {Exception.class},
+            retryFor = {DataAccessException.class},
+            noRetryFor = {CourierNotFoundException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000, multiplier = 2)
     )
