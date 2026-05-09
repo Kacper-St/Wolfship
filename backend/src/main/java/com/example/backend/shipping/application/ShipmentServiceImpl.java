@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -34,57 +35,24 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final TrackingNumberGenerator trackingNumberGenerator;
     private final ShipmentMapper shipmentMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final ShipmentPersistenceService shipmentPersistenceService;
 
     @Override
-    @Transactional
     public ShipmentResponse createShipment(ShipmentRequest request, UUID senderId) {
         log.info("Creating shipment for sender: {}", senderId);
 
-        Shipment shipment = shipmentMapper.toEntity(request);
-        shipment.setSenderId(senderId);
-        shipment.setTrackingNumber(trackingNumberGenerator.generate());
+        Shipment shipment = buildShipment(request, senderId);
+        geocodeAddresses(shipment);
 
-        Address senderAddress = shipment.getSenderAddress();
-        Point senderPoint = geocodingService.geocode(
-                senderAddress.getStreet(),
-                senderAddress.getHouseNumber(),
-                senderAddress.getCity(),
-                senderAddress.getZipCode(),
-                senderAddress.getCountry()
-        );
-        senderAddress.setCoordinates(senderPoint);
+        String labelUrl = labelService.generateAndUploadLabel(shipment);
+        shipment.setLabelUrl(labelUrl);
 
-        Address receiverAddress = shipment.getReceiverAddress();
-        Point receiverPoint = geocodingService.geocode(
-                receiverAddress.getStreet(),
-                receiverAddress.getHouseNumber(),
-                receiverAddress.getCity(),
-                receiverAddress.getZipCode(),
-                receiverAddress.getCountry()
-        );
-        receiverAddress.setCoordinates(receiverPoint);
+        Shipment saved = shipmentPersistenceService.save(shipment);
 
-        Shipment saved = shipmentRepository.saveAndFlush(shipment);
+        publishShipmentCreatedEvent(saved);
 
-        String labelUrl = labelService.generateAndUploadLabel(saved);
-        saved.setLabelUrl(labelUrl);
-
-        Shipment updated = shipmentRepository.save(saved);
-
-        eventPublisher.publishEvent(new ShipmentCreatedEvent(
-                updated.getId(),
-                updated.getTrackingNumber(),
-                updated.getSenderId(),
-                updated.getReceiverAddress().getEmail(),
-                receiverPoint.getY(),
-                receiverPoint.getX(),
-                senderPoint.getY(),
-                senderPoint.getX(),
-                updated.getLabelUrl()
-        ));
-
-        log.info("Shipment created successfully: {}", updated.getTrackingNumber());
-        return shipmentMapper.toResponse(updated);
+        log.info("Shipment created successfully: {}", saved.getTrackingNumber());
+        return shipmentMapper.toResponse(saved);
     }
 
     @Override
@@ -151,5 +119,55 @@ public class ShipmentServiceImpl implements ShipmentService {
             log.error("Failed to get label stream for: {}", trackingNumber, e);
             throw new LabelGenerationException(trackingNumber);
         }
+    }
+
+    private Shipment buildShipment(ShipmentRequest request, UUID senderId) {
+        Shipment shipment = shipmentMapper.toEntity(request);
+        shipment.setSenderId(senderId);
+        shipment.setTrackingNumber(trackingNumberGenerator.generate());
+        return shipment;
+    }
+
+    private void geocodeAddresses(Shipment shipment) {
+        Address sender = shipment.getSenderAddress();
+        Address receiver = shipment.getReceiverAddress();
+
+        CompletableFuture<Point> senderFuture = CompletableFuture.supplyAsync(
+                () -> geocodingService.geocode(
+                        sender.getStreet(),
+                        sender.getHouseNumber(),
+                        sender.getCity(),
+                        sender.getZipCode(),
+                        sender.getCountry()
+                ));
+
+        CompletableFuture<Point> receiverFuture = CompletableFuture.supplyAsync(
+                () -> geocodingService.geocode(
+                        receiver.getStreet(),
+                        receiver.getHouseNumber(),
+                        receiver.getCity(),
+                        receiver.getZipCode(),
+                        receiver.getCountry()
+                ));
+
+        sender.setCoordinates(senderFuture.join());
+        receiver.setCoordinates(receiverFuture.join());
+    }
+
+    private void publishShipmentCreatedEvent(Shipment shipment) {
+        Point senderPoint = shipment.getSenderAddress().getCoordinates();
+        Point receiverPoint = shipment.getReceiverAddress().getCoordinates();
+
+        eventPublisher.publishEvent(new ShipmentCreatedEvent(
+                shipment.getId(),
+                shipment.getTrackingNumber(),
+                shipment.getSenderId(),
+                shipment.getReceiverAddress().getEmail(),
+                senderPoint.getY(),
+                senderPoint.getX(),
+                receiverPoint.getY(),
+                receiverPoint.getX(),
+                shipment.getLabelUrl()
+        ));
     }
 }

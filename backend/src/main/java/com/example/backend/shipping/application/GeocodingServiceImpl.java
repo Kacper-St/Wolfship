@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -33,6 +34,8 @@ public class GeocodingServiceImpl implements GeocodingService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000, multiplier = 2)
     )
+
+    @Cacheable(value = "geocoding", key = "#street + ':' + #houseNumber + ':' + #city + ':' + #zipCode + ':' + #country")
 
     @Override
     public Point geocode(String street, String houseNumber,
