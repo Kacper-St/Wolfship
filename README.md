@@ -24,13 +24,16 @@ Backend aplikacji kurierskiej zbudowany w architekturze **modularnego monolitu**
 | Baza danych | PostgreSQL 17 + PostGIS 3.5 |
 | Migracje | Flyway |
 | ORM | Hibernate / JPA |
-| Mapowanie | MapStruct |
-| Bezpieczeństwo | Spring Security, JWT (jjwt) |
+| Mapowanie | MapStruct, Lombok |
+| Cache | Caffeine (geokodowanie, strefy) |
+| Bezpieczeństwo | Spring Security, JWT (jjwt), BCrypt |
+| Retry | Spring Retry |
 | Storage | MinIO (S3-compatible) |
 | Algorytmy | JGraphT (Dijkstra) |
 | Geokodowanie | Nominatim (OpenStreetMap) |
 | Etykiety | OpenPDF, ZXing (QR codes) |
 | Mail | Spring Mail + Mailtrap |
+| Dokumentacja | SpringDoc OpenAPI (Swagger UI) |
 | Konteneryzacja | Docker, Docker Compose |
 
 ## Architektura
