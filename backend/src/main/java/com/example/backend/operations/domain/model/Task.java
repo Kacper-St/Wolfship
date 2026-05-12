@@ -54,6 +54,9 @@ public class Task {
     @Column(nullable = false)
     private Integer sequenceOrder;
 
+    @Version
+    private long version;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

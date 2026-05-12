@@ -1,6 +1,7 @@
 package com.example.backend.common.exception;
 
 import com.example.backend.common.api.ApiResponse;
+import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,19 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(OptimisticLockException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(OptimisticLockException e) {
+        log.warn("Optimistic lock conflict: {}", e.getMessage());
+
+        ApiResponse<Void> response = new ApiResponse<>(
+                "Paczka została właśnie zeskanowana przez innego kuriera",
+                null,
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(Exception.class)
