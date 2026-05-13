@@ -18,6 +18,8 @@ import com.example.backend.users.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -176,16 +178,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<UserResponse> getAllUsers() {
-        log.info("Getting all users");
-
-        List<User> users = userRepository.findAllWithRoles();
-
-        return userMapper.toResponse(users);
-    }
-
-    @Override
     @Transactional
     public UserResponse updateUserById(UUID id, UserRequest userRequest) {
         log.info("Updating user with ID: {}", id);
@@ -247,6 +239,16 @@ public class UserServiceImpl implements UserService {
         response.setForcePasswordChange(savedUser.isForcePasswordChange());
 
         return response;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
+        log.info("Getting users page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<User> users = userRepository.findAllWithRoles(pageable);
+
+        return users.map(userMapper::toResponse);
     }
 
     private User findUserOrThrow(UUID id) {
