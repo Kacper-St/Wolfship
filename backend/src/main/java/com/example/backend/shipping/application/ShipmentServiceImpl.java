@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Point;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,13 +72,12 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ShipmentResponse> getMyShipments(UUID senderId) {
-        log.info("Getting shipments for sender: {}", senderId);
+    public Page<ShipmentResponse> getMyShipments(UUID senderId, Pageable pageable) {
+        log.info("Getting shipments for sender: {}, page: {}", senderId, pageable.getPageNumber());
 
-        return shipmentRepository.findAllBySenderId(senderId)
-                .stream()
-                .map(shipmentMapper::toResponse)
-                .toList();
+        Page<Shipment> shipments = shipmentRepository.findAllBySenderId(senderId, pageable);
+
+        return shipments.map(shipmentMapper::toResponse);
     }
 
     @Override

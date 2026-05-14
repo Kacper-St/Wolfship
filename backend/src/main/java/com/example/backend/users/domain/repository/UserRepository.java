@@ -1,6 +1,8 @@
 package com.example.backend.users.domain.repository;
 
 import com.example.backend.users.domain.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -13,8 +15,8 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
 
-    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles")
-    List<User> findAllWithRoles();
-
     Optional<User> findByEmail(String email);
+
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles")
+    Page<User> findAllWithRoles(Pageable pageable);
 }
