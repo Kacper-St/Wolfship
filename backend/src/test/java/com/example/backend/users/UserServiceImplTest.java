@@ -1,9 +1,10 @@
-package com.example.backend.users.application;
+package com.example.backend.users;
 
 import com.example.backend.common.util.PasswordGenerator;
 import com.example.backend.security.jwt.JwtService;
 import com.example.backend.users.api.dto.*;
 import com.example.backend.users.api.mapper.UserMapper;
+import com.example.backend.users.application.UserServiceImpl;
 import com.example.backend.users.application.event.UserCreatedEvent;
 import com.example.backend.users.domain.exception.InvalidCredentialsException;
 import com.example.backend.users.domain.exception.SamePasswordException;
