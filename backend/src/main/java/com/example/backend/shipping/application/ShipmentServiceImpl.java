@@ -40,6 +40,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final ShipmentPersistenceService shipmentPersistenceService;
 
     @Override
+    @Transactional
     public ShipmentResponse createShipment(ShipmentRequest request, UUID senderId) {
         log.info("Creating shipment for sender: {}", senderId);
 
@@ -164,10 +165,10 @@ public class ShipmentServiceImpl implements ShipmentService {
                 shipment.getTrackingNumber(),
                 shipment.getSenderId(),
                 shipment.getReceiverAddress().getEmail(),
-                senderPoint.getY(),
-                senderPoint.getX(),
                 receiverPoint.getY(),
                 receiverPoint.getX(),
+                senderPoint.getY(),
+                senderPoint.getX(),
                 shipment.getLabelUrl()
         ));
     }
