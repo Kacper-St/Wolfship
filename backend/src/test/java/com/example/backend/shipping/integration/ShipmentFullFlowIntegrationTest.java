@@ -176,6 +176,9 @@ class ShipmentFullFlowIntegrationTest extends BaseIntegrationTest {
         UUID shipmentId = response.getBody().getId();
         assertThat(shipmentId).isNotNull();
 
+        assertThat(response.getBody().getPrice()).isEqualByComparingTo("20.00");
+        assertThat(response.getBody().getCurrency()).isEqualTo("PLN");
+
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
             ShipmentRoute route = shipmentRouteRepository.findByShipmentId(shipmentId).orElse(null);
             assertThat(route).isNotNull();

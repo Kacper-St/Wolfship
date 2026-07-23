@@ -3,15 +3,12 @@ package com.example.backend.shipping.domain.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -64,13 +61,8 @@ public class Shipment {
     private ShipmentSize size;
 
     @NotNull
-    @Positive(message = "Price must be positive")
-    @Column(nullable = false)
-    private BigDecimal price;
-
-    @Column(length = 3, nullable = false)
-    @Builder.Default
-    private String currency = "PLN";
+    @Embedded
+    private Money price;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
