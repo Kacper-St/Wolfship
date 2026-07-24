@@ -1,6 +1,7 @@
 package com.example.backend.tracking.application.listener;
 
 import com.example.backend.shipping.application.event.ShipmentCancelledEvent;
+import com.example.backend.tracking.application.TrackingEventCommand;
 import com.example.backend.tracking.application.TrackingService;
 import com.example.backend.tracking.domain.model.TrackingStatus;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +26,11 @@ public class ShipmentCancelledTrackingListener {
     public void onShipmentCancelled(ShipmentCancelledEvent event) {
         log.info("Recording CANCELLED tracking event for: {}", event.trackingNumber());
 
-        trackingService.recordEvent(
-                event.shipmentId(),
-                event.trackingNumber(),
-                TrackingStatus.CANCELLED,
-                "Paczka anulowana przez nadawcę",
-                null
-        );
+        trackingService.recordEvent(TrackingEventCommand.builder()
+                .shipmentId(event.shipmentId())
+                .trackingNumber(event.trackingNumber())
+                .status(TrackingStatus.CANCELLED)
+                .description("Paczka anulowana przez nadawcę")
+                .build());
     }
 }
