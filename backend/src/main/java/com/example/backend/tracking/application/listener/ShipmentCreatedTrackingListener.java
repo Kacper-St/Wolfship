@@ -1,6 +1,7 @@
 package com.example.backend.tracking.application.listener;
 
 import com.example.backend.shipping.application.event.ShipmentCreatedEvent;
+import com.example.backend.tracking.application.TrackingEventCommand;
 import com.example.backend.tracking.application.TrackingService;
 import com.example.backend.tracking.domain.model.TrackingStatus;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +25,11 @@ public class ShipmentCreatedTrackingListener {
     public void onShipmentCreated(ShipmentCreatedEvent event) {
         log.info("Recording CREATED tracking event for: {}", event.trackingNumber());
 
-        trackingService.recordEvent(
-                event.shipmentId(),
-                event.trackingNumber(),
-                TrackingStatus.CREATED,
-                "Paczka przyjęta w systemie",
-                null
-        );
+        trackingService.recordEvent(TrackingEventCommand.builder()
+                .shipmentId(event.shipmentId())
+                .trackingNumber(event.trackingNumber())
+                .status(TrackingStatus.CREATED)
+                .description("Paczka przyjęta w systemie")
+                .build());
     }
 }

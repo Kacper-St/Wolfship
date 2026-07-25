@@ -2,6 +2,7 @@ package com.example.backend.tracking.application.listener;
 
 import com.example.backend.operations.application.event.ShipmentScannedEvent;
 import com.example.backend.operations.domain.model.TaskCompletionStatus;
+import com.example.backend.tracking.application.TrackingEventCommand;
 import com.example.backend.tracking.application.TrackingService;
 import com.example.backend.tracking.domain.model.TrackingStatus;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +27,13 @@ public class ShipmentScannedTrackingListener {
     public void onShipmentScanned(ShipmentScannedEvent event) {
         log.info("Recording tracking event for: {}", event.trackingNumber());
 
-        trackingService.recordEvent(
-                event.shipmentId(),
-                event.trackingNumber(),
-                mapToTrackingStatus(event.completionStatus()),
-                event.description(),
-                event.location()
-        );
+        trackingService.recordEvent(TrackingEventCommand.builder()
+                .shipmentId(event.shipmentId())
+                .trackingNumber(event.trackingNumber())
+                .status(mapToTrackingStatus(event.completionStatus()))
+                .description(event.description())
+                .location(event.location())
+                .build());
     }
 
     private TrackingStatus mapToTrackingStatus(TaskCompletionStatus status) {

@@ -24,21 +24,21 @@ public class TrackingServiceImpl implements TrackingService {
 
     @Override
     @Transactional
-    public void recordEvent(UUID shipmentId, String trackingNumber, TrackingStatus status, String description, String location) {
+    public void recordEvent(TrackingEventCommand command) {
 
-        log.info("Recording tracking event for shipment: {} status: {}", trackingNumber, status);
+        log.info("Recording tracking event for shipment: {} status: {}", command.trackingNumber(), command.status());
 
         TrackingEvent event = TrackingEvent.builder()
-                .shipmentId(shipmentId)
-                .trackingNumber(trackingNumber)
-                .status(status)
-                .description(description)
-                .location(location)
+                .shipmentId(command.shipmentId())
+                .trackingNumber(command.trackingNumber())
+                .status(command.status())
+                .description(command.description())
+                .location(command.location())
                 .build();
 
         trackingEventRepository.save(event);
 
-        log.info("Tracking event recorded successfully for: {}", trackingNumber);
+        log.info("Tracking event recorded successfully for: {}", command.trackingNumber());
     }
 
     @Override
