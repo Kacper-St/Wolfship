@@ -25,6 +25,13 @@ jobs:
         working-directory: backend
         run: ./mvnw clean verify -B
 
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco/
+
       - name: Build Docker image
         working-directory: backend
         run: docker build -t wolfship-backend:${{ github.sha }} .
